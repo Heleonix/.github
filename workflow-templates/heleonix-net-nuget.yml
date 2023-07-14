@@ -8,13 +8,44 @@ jobs:
   ci:
     runs-on: 'windows-latest'
     steps:
-      - uses: actions/checkout@v3
-      - run: nuget install Heleonix.Build -outputdirectory ./hxb
-      - name: validate
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Heleonix.Build
+        run: nuget install Heleonix.Build -outputdirectory ./hxb
+      - name: Validate
         run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets=Hx_NetValidate
-      - name: changelog
+      - name: Changelog
         run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets=Hx_ChangeLog_GitHubCommit
-      - name: build
+        env:
+          Hx_ChangeLog_GitHubCommit_Token: ${{ secrets.GH_PAT }}
+      - name: Build
         run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets=Hx_NetBuild
-      - name: test
+      - name: Test
         run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets="Hx_OpenCover;Hx_ReportUnit;Hx_ReportGenerator"
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Hx_Artifacts
+          path: Hx_Artifacts
+
+  cd:
+   runs-on: 'windows-latest'
+   environment: 'prod'
+   needs: ci
+   steps:
+     - name: Heleonix.Build
+       run: nuget install Heleonix.Build -outputdirectory ./hxb
+     - name: Download
+       uses: actions/download-artifact@v3
+       with:
+         name: Hx_Artifacts
+     - name: Publish
+       run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets=Hx_NugetPublish
+       env:
+         Hx_NugetPublish_APIKey: ${{ secrets.NUGET_API_KEY }}
+     - name: Release
+       run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets=Hx_Release_GitHub
+       env:
+         Hx_Release_GitHub_Token: ${{ secrets.GH_PAT }}
+     - name: Docs
+       run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Heleonix.Build.hxbproj /p:Hx_Input_Targets=Hx_DocFX_Git
