@@ -1,4 +1,4 @@
 {
-    "name": "heleonix-net-nuget",
-    "description": "heleonix-net-nuget"
+    "name": "hx-net-nuget",
+    "description": "CI/CD for .NET packages hosted in NuGet"
 }
