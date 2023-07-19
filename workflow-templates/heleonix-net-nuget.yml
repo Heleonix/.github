@@ -11,10 +11,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Heleonix.Build
-        run: nuget install Heleonix.Build -outputdirectory ./hxb
+        run: nuget install Heleonix.Build -version 4.0.0 -outputdirectory ./hxb
       - name: Validate
         run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Main.hxbproj /p:Hx_Input_Targets=Hx_NetValidate
-      - name: Changelog
+      - name: ChangeLog
         run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Main.hxbproj /p:Hx_Input_Targets=Hx_ChangeLog_GitHubCommit
         env:
           Hx_ChangeLog_GitHubCommit_Token: ${{ secrets.GH_PAT }}
@@ -34,7 +34,7 @@ jobs:
    needs: ci
    steps:
      - name: Heleonix.Build
-       run: nuget install Heleonix.Build -outputdirectory ./hxb
+       run: nuget install Heleonix.Build -version 4.0.0 -outputdirectory ./hxb
      - name: Download
        uses: actions/download-artifact@v3
        with:
@@ -49,3 +49,5 @@ jobs:
          Hx_Release_GitHub_Token: ${{ secrets.GH_PAT }}
      - name: Docs
        run: dotnet msbuild ./hxb/Heleonix.Build.1.0.0/Main.hxbproj /p:Hx_Input_Targets=Hx_DocFX_Git
+       env:
+         Hx_DocFX_Git_Token: ${{ secrets.GH_PAT }}
